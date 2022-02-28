@@ -1,11 +1,6 @@
 import os, time, numpy as np, argparse, matplotlib.pyplot as plt, scipy
 from sys import argv
 from distutils.dir_util import copy_tree
-import tensorflow as tf
-tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.ERROR)
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
-# Import custom libraries
 from src.game_environment import Game
 import src.util as u
 import src.tfloss as loss
@@ -14,6 +9,7 @@ from src.tfutils import *
 from graphs.reconstructions_plot import reconstructions_plot
 from graphs.generate_traversals import generate_traversals
 from graphs.stats_plot import stats_plot
+
 
 parser = argparse.ArgumentParser(description='Training script.')
 parser.add_argument('-r', '--resume', action='store_true', help='If this is used, the script tries to load existing weights and resume training.')
@@ -38,10 +34,14 @@ signature += str(gamma_rate)+'_'+str(gamma_delay)+'_'+str(var_a)+'_'+str(args.ba
 folder = 'figs_'+signature
 folder_chp = folder + '/checkpoints'
 
-try: os.mkdir(folder)
-except: print('Folder already exists!!')
-try: os.mkdir(folder_chp)
-except: print('Folder chp creation error')
+try:
+    os.mkdir(folder)
+except:
+    print('Folder already exists!!')
+try:
+    os.mkdir(folder_chp)
+except:
+    print('Folder chp creation error')
 
 games = Game(args.batch)
 game_test = Game(1)
@@ -149,7 +149,7 @@ for epoch in range(start_epoch, epochs + 1):
     o0,o1,pi0 = u.make_batch_dsprites_random_reward_transitions(game=game_test, index=0, size=TEST_SIZE, repeats=repeats)
     po1 = model.imagine_future_from_o(o0, pi0)
     reconstructions_plot(o0, o1, po1.numpy(), filename=folder+'/reward_imagination_'+signature+'_'+str(epoch)+'.png')
-    mse_reward = u.compare_reward(o1=o1,po1=po1.numpy())
+    mse_reward = u.compare_reward(o1=o1, po1=po1.numpy())
     stats['mse_r'].append(mse_reward)
     stats_plot(stats, folder+'/1_result_'+signature)
 
@@ -157,18 +157,3 @@ for epoch in range(start_epoch, epochs + 1):
           stats['F'][-1], stats['mse_o'][-1], stats['kl_div_s'][-1], stats['omega'][-1], stats['omega_std'][-1], stats['kl_div_pi'][-1],
           stats['TC'][-1], round(time.time()-start_time,2)))
     start_time = time.time()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#

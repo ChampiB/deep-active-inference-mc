@@ -3,8 +3,12 @@ import numpy as np
 
 log_2_pi = np.log(2.0*np.pi)
 
-def kl_div_loss_analytically_from_logvar_and_precision(mu1, logvar1, mu2, logvar2, omega):
-    return 0.5*(logvar2 - tf.math.log(omega) - logvar1) + (tf.exp(logvar1) + tf.math.square(mu1 - mu2)) / (2.0 * tf.exp(logvar2) / omega) - 0.5
+
+def kl_div_loss_analytically_from_logvar_and_precision(mean_hat, log_var_hat, mean, log_var, omega):
+    return 0.5 * (log_var - tf.math.log(omega) - log_var_hat) \
+           + tf.exp(log_var_hat) / (2.0 * tf.exp(log_var) / omega) \
+           + tf.math.square(mean_hat - mean) / (2.0 * tf.exp(log_var) / omega) - 0.5
+
 
 def kl_div_loss_analytically_from_logvar(mu1, logvar1, mu2, logvar2):
     return 0.5*(logvar2 - logvar1) + (tf.exp(logvar1) + tf.math.square(mu1 - mu2)) / (2.0 * tf.exp(logvar2)) - 0.5

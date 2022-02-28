@@ -62,7 +62,7 @@ def compute_loss_down(model_down, o1, ps1_mean, ps1_logvar, omega, displacement 
     kl_div_s = tf.reduce_sum(kl_div_s_anal, 1)
 
     if model_down.gamma <= 0.05:
-       F = - model_down.beta_o*logpo1_s1 + model_down.beta_s*kl_div_s_naive
+       F = - model_down.beta_o * logpo1_s1 + model_down.beta_s * kl_div_s_naive
     elif model_down.gamma >= 0.95:
        F = - model_down.beta_o*logpo1_s1 + model_down.beta_s*kl_div_s
     else:

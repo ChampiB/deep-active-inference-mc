@@ -1,5 +1,6 @@
 numpy
 matplotlib
 scipy
-tensorflow-gpu>=2.0.0
+tensorflow-gpu==2.2.0
 opencv-python
+sklearn

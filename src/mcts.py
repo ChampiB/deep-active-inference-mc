@@ -4,13 +4,15 @@ import tensorflow as tf
 from src.tfmodel import ActiveInferenceModel
 
 NODE_ID = 0
+
+
 class Node:
     def __init__(self, s, model, C, pi_dim=4, verbose=False, using_prior_for_exploration=False):
         global NODE_ID
 
         # The latent state that corresponds to this node!
         self.pi_dim = pi_dim
-        self.s = np.stack((s,)*self.pi_dim, axis=0) # NOTE: It's saved self.pi_dim times to simplify calculations.
+        self.s = np.stack((s,)*self.pi_dim, axis=0)  # NOTE: It's saved self.pi_dim times to simplify calculations.
         self.model = model
         self.verbose = verbose
         self.using_prior_for_exploration = using_prior_for_exploration
@@ -47,8 +49,10 @@ class Node:
     def select(self, deterministic=True):
         path = []
         actions_path = []
-        if deterministic: self.in_progress = np.argmax(self.probs_for_selection())
-        else: self.in_progress = np.random.choice(self.pi_dim, p=self.probs_for_selection())
+        if deterministic:
+            self.in_progress = np.argmax(self.probs_for_selection())
+        else:
+            self.in_progress = np.random.choice(self.pi_dim, p=self.probs_for_selection())
         actions_path.append(self.in_progress)
         path.append(self.children_nodes[self.in_progress])
         while None not in path[-1].children_nodes: # If not leaf!
@@ -91,21 +95,27 @@ class Node:
                 exit('Back-propagation error: '+str(path)+' '+str(i))
             path[i].W[path[i].in_progress] -= G
             path[i].N[path[i].in_progress] += 1
-            path[i].in_progress = -2 # just to remember it's been examined..
+            path[i].in_progress = -2  # just to remember it's been examined..
             if self.verbose: print('Propagating to node', path[i].NODE_ID, 'with N:', path[i].N)
 
     #@tf.function
     def action_selection(self, deterministic=True):
         path = []
-        if deterministic: path.append(np.argmax(self.N))
-        else: path.append(np.random.choice(self.pi_dim,p=self.normalization(self.N)))
+        if deterministic:
+            path.append(np.argmax(self.N))
+        else:
+            path.append(np.random.choice(self.pi_dim,p=self.normalization(self.N)))
         node = self.children_nodes[path[-1]]
-        if self.verbose: print(len(path),node.NODE_ID)
+        if self.verbose:
+            print(len(path), node.NODE_ID)
         while None not in node.children_nodes:
-            if deterministic: path.append(np.argmax(node.N))
-            else: path.append(np.random.choice(self.pi_dim,p=self.normalization(node.N)))
+            if deterministic:
+                path.append(np.argmax(node.N))
+            else:
+                path.append(np.random.choice(self.pi_dim,p=self.normalization(node.N)))
             node = node.children_nodes[path[-1]]
-            if self.verbose: print(len(path),node.NODE_ID)
+            if self.verbose:
+                print(len(path),node.NODE_ID)
 
         trimmed_path = []
         i=0
@@ -124,30 +134,32 @@ class Node:
                     i += 1
             else:
                 exit('Error: Unknown number of pi_dim '+str(self.pi_dim))
-        if self.verbose: print('Action selection:', path, 'trimmed path:', trimmed_path)
+        if self.verbose:
+            print('Action selection:', path, 'trimmed path:', trimmed_path)
         return trimmed_path
-
-
 
 
 def calc_threshold(P, axis):
     return np.max(P,axis=axis) - np.mean(P,axis=axis)
 
+
 def normalization(x, tau=1):
     '''Compute softmax values for each sets of scores in x.'''
     return x / x.sum(axis=0)
 
+
 class MCTS_Params:
-    def __init__(self):
-        self.C = 1.0
-        self.threshold = 0.5
-        self.repeats = 300
+
+    def __init__(self, args):
+        self.C = args.C
+        self.repeats = args.repeats
+        self.threshold = args.threshold
+        self.simulation_depth = args.depth
+        self.use_habit = args.no_habit
         self.simulation_repeats = 1
-        self.simulation_depth = 3
-        self.use_habit = False
         self.use_means = True
         self.verbose = False
-        self.method = 'ai'
+        self.method = 'mcts'
         self.using_prior_for_exploration = False
 
 def active_inference_mcts(model, frame, params, o_shape=(64,64,1)):
@@ -168,7 +180,8 @@ def active_inference_mcts(model, frame, params, o_shape=(64,64,1)):
 
     if params.use_habit:
         if calc_threshold(root.Qpi, axis=0) > params.threshold:
-            if params.verbose: print('Decision in phase A Qpi:',root.Qpi, calc_threshold(root.Qpi,axis=0))
+            if params.verbose:
+                print('Decision in phase A Qpi:', root.Qpi, calc_threshold(root.Qpi,axis=0))
             MCTS_choices = root.Qpi
             return [np.random.choice(model.pi_dim, p=root.Qpi)], 0, states_explored, all_paths, all_paths_G
 
@@ -178,8 +191,8 @@ def active_inference_mcts(model, frame, params, o_shape=(64,64,1)):
 
         if calc_threshold(normalization(root.N),axis=0) > params.threshold:
             MCTS_choices = normalization(root.N)
-            if params.verbose: print('Decision in phase B',np.round(root.probs_for_selection(),2), np.round(MCTS_choices,2),
-                                   calc_threshold(MCTS_choices,axis=0), 'N:', root.N)
+            if params.verbose:
+                print('Decision in phase B',np.round(root.probs_for_selection(),2), np.round(MCTS_choices,2), calc_threshold(MCTS_choices,axis=0), 'N:', root.N)
             final_path = root.action_selection(deterministic=True)
             return final_path, repeat, states_explored, all_paths, all_paths_G
 

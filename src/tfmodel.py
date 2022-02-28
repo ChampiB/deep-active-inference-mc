@@ -164,7 +164,6 @@ class ActiveInferenceModel:
                                          [0.0,1.0,0.0],
                                          [0.0,0.0,1.0]], trainable=False, dtype=self.tf_precision)
 
-
     def save_weights(self, folder_chp):
         self.model_down.qs_net.save_weights(folder_chp+'/checkpoint_qs')
         self.model_down.po_net.save_weights(folder_chp+'/checkpoint_po')
@@ -183,8 +182,8 @@ class ActiveInferenceModel:
         self.save_weights(folder_chp)
         with open(folder_chp+'/stats.pkl','wb') as ff:
             pickle.dump(stats,ff)
-        with open(folder_chp+'/optimizers.pkl','wb') as ff:
-            pickle.dump(optimizers,ff)
+        #TODO with open(folder_chp+'/optimizers.pkl','wb') as ff:
+        #TODO     pickle.dump(optimizers,ff)
         copyfile('src/tfmodel.py', folder_chp+'/tfmodel.py')
         copyfile('src/tfloss.py', folder_chp+'/tfloss.py')
         if script_file != "":
@@ -194,11 +193,11 @@ class ActiveInferenceModel:
         self.load_weights(folder_chp)
         with open(folder_chp+'/stats.pkl','rb') as ff:
             stats = pickle.load(ff)
-        try:
-            with open(folder_chp+'/optimizers.pkl','rb') as ff:
-                optimizers = pickle.load(ff)
-        except:
-            optimizers = {}
+        # TODO try:
+        # TODO     with open(folder_chp+'/optimizers.pkl','rb') as ff:
+        # TODO         optimizers = pickle.load(ff)
+        # TODO except:
+        optimizers = {}
         if len(stats['var_beta_s'])>0: self.model_down.beta_s.assign(stats['var_beta_s'][-1])
         if len(stats['var_gamma'])>0: self.model_down.gamma.assign(stats['var_gamma'][-1])
         if len(stats['var_beta_o'])>0: self.model_down.beta_o.assign(stats['var_beta_o'][-1])
