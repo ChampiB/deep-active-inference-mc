@@ -1,7 +1,4 @@
-import os, argparse, pickle, time, cv2
 import numpy as np
-import tensorflow as tf
-from src.tfmodel import ActiveInferenceModel
 
 NODE_ID = 0
 
@@ -16,7 +13,7 @@ class Node:
         self.model = model
         self.verbose = verbose
         self.using_prior_for_exploration = using_prior_for_exploration
-        self.visited = False # For visulization
+        self.visited = False  # For visulization
         self.NODE_ID = NODE_ID
         NODE_ID += 1
 
@@ -140,7 +137,7 @@ class Node:
 
 
 def calc_threshold(P, axis):
-    return np.max(P,axis=axis) - np.mean(P,axis=axis)
+    return np.max(P, axis=axis) - np.mean(P, axis=axis)
 
 
 def normalization(x, tau=1):
@@ -164,8 +161,8 @@ class MCTS_Params:
 
 def active_inference_mcts(model, frame, params, o_shape=(64,64,1)):
     states_explored = 0
-    all_paths = [] # For debugging.
-    all_paths_G = [] # For debugging.
+    all_paths = []  # For debugging.
+    all_paths_G = []  # For debugging.
     if frame == []:
         return [0], 0, states_explored, all_paths, all_paths_G
 
@@ -182,7 +179,6 @@ def active_inference_mcts(model, frame, params, o_shape=(64,64,1)):
         if calc_threshold(root.Qpi, axis=0) > params.threshold:
             if params.verbose:
                 print('Decision in phase A Qpi:', root.Qpi, calc_threshold(root.Qpi,axis=0))
-            MCTS_choices = root.Qpi
             return [np.random.choice(model.pi_dim, p=root.Qpi)], 0, states_explored, all_paths, all_paths_G
 
     root.expand(use_means=params.use_means)
